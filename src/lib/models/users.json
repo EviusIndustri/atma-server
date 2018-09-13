@@ -1,0 +1,29 @@
+{
+	"name": "users",
+	"key": "_id",
+	"desc": "Users schema",
+  "attributes": {
+    "email": {
+      "field": "single-line-text",
+      "type": "string",
+      "required": true,
+      "unique": true
+		},
+		"username": {
+			"type": "string"
+		},
+    "role": {
+      "field": "single-line-text",
+      "type": "string",
+      "required": true,
+      "default": "auth"
+		},
+		"lastLogin": {
+      "field": "single-line-text",
+      "type": "date"
+		}
+  },
+  "options": {
+    "timestamps": true
+  }
+}
