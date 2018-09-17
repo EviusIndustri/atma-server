@@ -29,7 +29,7 @@ module.exports = {
 						from: 'atma@evius.id',
 						to: params.email,
 						subject: 'Verify Registration',
-						text: `Code: ${codename} Click link here ${params.origin}/verify?token=${registerToken}`
+						text: `Code: ${codename} Click link here ${params.origin ? params.origin : process.env.ATMA_MAILSERVER}/verify?token=${registerToken}`
 					})
 
 					resolve({
@@ -70,12 +70,15 @@ module.exports = {
 						env: params.env
 					}, 'login')
 
+					console.log(process.env.ATMA_MAILSERVER)
+
 					transporter.sendMail({
 						from: 'atma@evius.id',
 						to: params.email,
 						subject: 'Verify Login',
-						text: `Code: ${codename} Click link here ${params.origin}/verify?token=${loginToken}`
+						text: `Code: ${codename} Click link here ${params.origin ? params.origin : process.env.ATMA_MAILSERVER}/verify?token=${loginToken}`
 					}, (err, info) => {
+						if(err) console.log(err)
 						console.log(info)
 					})
 
@@ -162,7 +165,7 @@ module.exports = {
 
 						resolve(accessToken)
 					}
-					reject('invalid parameter')
+					reject('invalid token')
 				})
 				.catch((err) => {
 					reject(err)

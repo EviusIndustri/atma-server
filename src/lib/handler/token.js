@@ -6,37 +6,7 @@ import db from '../db'
 const uidgen = new uidGenerator()
 
 class Token {
-	constructor() {
-		this.socket = {}
-		this.accessTokenPooling = {}
-	}
-
-	// socketAdd(socketId, refresh) {
-	// 	Object.assign(this.socket, {[socketId]: refresh})
-	// }
-	// socketGet(socketId) {
-	// 	return this.socket[socketId]
-	// }
-	// socketRemove(socketId) {
-	// 	delete this.socket[socketId]
-	// }
-
-	// poolingAdd(refresh, pooling) {
-	// 	Object.assign(this.accessTokenPooling, {[refresh]: pooling})
-	// }
-	// poolingGet(refresh) {
-	// 	return this.accessTokenPooling[refresh]
-	// }
-	// poolingRemove(socketId) {
-	// 	const refresh = this.socketGet(socketId)
-	// 	console.log(`clearing pooling from ${socketId} with token ${refresh}`)
-	// 	clearInterval(this.accessTokenPooling[refresh])
-	// 	delete this.accessTokenPooling[refresh]
-	// 	console.log(`current socket list`)
-	// 	console.log(this.socket)
-	// 	console.log('current accessToken pooling')
-	// 	console.log(this.accessTokenPooling)
-	// }
+	constructor() {}
 
 	/**
 	 * 

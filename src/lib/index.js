@@ -49,7 +49,7 @@ module.exports = {
 		myRouter.post('/login', async (req, res) => {
 			try {
 				const response = await handler.login({
-					origin: req.get('origin'),
+					// origin: req.get('origin'),
 					email: req.body.email,
 					env: req.useragent.source
 				})
