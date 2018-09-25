@@ -159,6 +159,7 @@ module.exports = {
 					if(result) {
 						// if valid then sent access token
 						const accessToken = token.access({
+							appId: params.appId,
 							_id: result.issuer._id,
 							email: result.issuer.email,
 						})

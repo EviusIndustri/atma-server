@@ -65,7 +65,7 @@ module.exports = {
 			}
 		})
 
-		myRouter.get('/token', (req, res, next) => {
+		myRouter.get('/token/:appId', (req, res, next) => {
 			if(req.headers.authorization && req.headers.authorization.length > 7) {
 				return next()
 			}
@@ -76,6 +76,7 @@ module.exports = {
 		}, async (req, res) => {
 			try {
 				const response = await handler.token({
+					appId: req.params.appId,
 					email: req.body.email,
 					refreshToken: req.headers.authorization.substring(7)
 				})

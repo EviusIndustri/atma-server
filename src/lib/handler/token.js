@@ -65,11 +65,12 @@ class Token {
 	}
 
 	access (params) {
+		console.log(params)
 		const accessToken = jwt.sign({
 			_id: params._id,
 			email: params.email,
 			type: 'accessToken'
-		}, process.env.APP_ACCESS_TOKEN, {expiresIn: '45s'})
+		}, process.env[`${params.appId.toUpperCase()}_ACCESS_TOKEN`], {expiresIn: '45s'})
 		return accessToken
 	}
 }

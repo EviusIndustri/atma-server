@@ -24,7 +24,7 @@ module.exports.init = (server) => {
 		})
 		socket.on('logout', (refreshToken) => {
 			token.refreshRevoke(refreshToken)
-			emitter.authState(refreshToken, null)
+			emitter.authState(refreshToken, null)	
 		})
 
 		emitter.authState = (room, response) => {
