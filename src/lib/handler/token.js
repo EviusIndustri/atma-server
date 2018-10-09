@@ -65,7 +65,7 @@ class Token {
 	}
 
 	access (params) {
-		console.log(params)
+		console.log('requestAccessToken', params)
 		const accessToken = jwt.sign({
 			_id: params._id,
 			email: params.email,

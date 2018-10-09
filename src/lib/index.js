@@ -1,6 +1,7 @@
 import express from 'express'
 import handler from './handler'
 import db from './db'
+import token from './handler/token'
 
 module.exports = {
 	async init() {
@@ -46,6 +47,24 @@ module.exports = {
 			}
 		})
 
+		myRouter.post('/confirm', async (req, res) => {
+			try {
+				const response = await handler.confirm({
+					email: req.body.email,
+					codename: req.body.codename
+				})
+				res.status(200).json({
+					status: 'success',
+					data: response
+				})
+			} catch (err) {
+				res.status(400).json({
+					status: 'error',
+					message: err
+				})
+			}
+		})
+
 		myRouter.post('/login', async (req, res) => {
 			try {
 				const response = await handler.login({
@@ -53,6 +72,21 @@ module.exports = {
 					email: req.body.email,
 					env: req.useragent.source
 				})
+				res.status(200).json({
+					status: 'success',
+					data: response
+				})
+			} catch (err) {
+				res.status(400).json({
+					status: 'error',
+					message: err
+				})
+			}
+		})
+
+		myRouter.post('/logout', async (req, res) => {
+			try {
+				const response = await token.refreshRevoke(req.body.refresh)
 				res.status(200).json({
 					status: 'success',
 					data: response

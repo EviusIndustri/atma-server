@@ -1,14 +1,12 @@
 import express from 'express'
-import http from 'http'
 import bodyParser from 'body-parser'
 import useragent from 'express-useragent'
 
 import auth from './lib'
-import socketIO from './lib/io'
 
 const app = express()
-const server = http.Server(app)
-socketIO.init(server)
+// const server = http.Server(app)
+// socketIO.init(server)
 
 const main = async () => {
 	await auth.init()
@@ -24,9 +22,9 @@ const main = async () => {
 	app.use(bodyParser.json())
 	app.use(bodyParser.urlencoded({ extended: false }))
 
-	app.use(auth.middleware())
+	app.use('/api', auth.middleware())
 
-	server.listen(process.env.PORT, () => {
+	app.listen(process.env.PORT, () => {
 		console.log(`> atma is listening on PORT ${process.env.PORT}`)
 	})
 }

@@ -1,11 +1,13 @@
 import jwt from 'jsonwebtoken'
 import sillyname from 'sillyname'
+import emailTemplate from '../email'
 
 import db from '../db'
-import io from '../io'
 
 import transporter from './mail'
 import token from './token'
+
+let verificationList = {}
 
 module.exports = {
 	register(params) {
@@ -25,16 +27,19 @@ module.exports = {
 						env: params.env
 					}, 'register')
 
+					const template = emailTemplate('register', codename, `${params.origin ? params.origin : process.env.ATMA_MAILSERVER}/verify?token=${registerToken}`)
+
 					transporter.sendMail({
 						from: 'atma@evius.id',
 						to: params.email,
-						subject: 'Verify Registration',
-						text: `Code: ${codename} Click link here ${params.origin ? params.origin : process.env.ATMA_MAILSERVER}/verify?token=${registerToken}`
-					})
-
-					resolve({
-						email: params.email,
-						codename: codename
+						subject: `Verify Registration [${codename}]`,
+						html: template.toString()
+					}, (err) => {
+						if(err) return reject(err)
+						resolve({
+							email: params.email,
+							codename: codename
+						})
 					})
 				})
 				.catch((err) => {
@@ -57,7 +62,7 @@ module.exports = {
 			})
 				.then((result) => {
 					if(!result) {
-						return reject('email is not registrated')
+						return reject('email is not registered')
 					}
 					// get registered email
 					// send verification email
@@ -70,21 +75,20 @@ module.exports = {
 						env: params.env
 					}, 'login')
 
-					console.log(process.env.ATMA_MAILSERVER)
+					const template = emailTemplate('login', codename, `${params.origin ? params.origin : process.env.ATMA_MAILSERVER}/verify?token=${loginToken}`)
 
 					transporter.sendMail({
 						from: 'atma@evius.id',
 						to: params.email,
-						subject: 'Verify Login',
-						text: `Code: ${codename} Click link here ${params.origin ? params.origin : process.env.ATMA_MAILSERVER}/verify?token=${loginToken}`
+						subject: `Verify Login [${codename}]`,
+						html: template.toString()
 					}, (err, info) => {
-						if(err) console.log(err)
+						if(err) return reject(err)
 						console.log(info)
-					})
-
-					resolve({
-						email: params.email,
-						codename: codename
+						resolve({
+							email: params.email,
+							codename: codename
+						})
 					})
 				})
 				.catch((err) => {
@@ -102,45 +106,73 @@ module.exports = {
 			try {
 				// decode jwt
 				const decoded = jwt.verify(params.token, process.env.ATMA_SECRET)
-				// if token type = register, save user first
-				if(decoded.type === 'register') {
+				verificationList[decoded.email + decoded.codename] = {
+					decoded: decoded,
+					verified: false
+				}
+				console.log('verifying', verificationList[decoded.email + decoded.codename])
+				const verifyChecker = setInterval(() => {
+					if(verificationList[decoded.email + decoded.codename].verified) {
+						clearInterval(verifyChecker)
+						delete verificationList[decoded.email + decoded.codename]
+						resolve('verified')
+					}
+				}, 1000)
+			} catch (err) {
+				reject(err)
+			}
+		})
+	},
+
+	confirm(params) {
+		return new Promise(async (resolve, reject) => {
+			const verificationData = verificationList[params.email + params.codename]
+			console.log('confirm', verificationData)
+			if(verificationData) {
+				if(verificationData.decoded.type === 'register') {
 					const newUser = new db.models['users']({
-						email: decoded.email,
-						username: decoded.email.split('@')[0]
+						email: verificationData.decoded.email,
+						username: verificationData.decoded.email.split('@')[0]
 					})
 					newUser.save()
 						.then(async (result) => {
 							if(result) {
 								const response = await token.refresh({
 									issuer: result._id,
-									env: decoded.env
+									env: verificationData.decoded.env
 								})
-								io.emitter.authState(`${decoded.email}/${decoded.codename}`, {
-									status: 'success',
-									data: response
-								})
-								resolve('verified!')
+								verificationList[params.email + params.codename].verified = true
+								// verificationList
+								// io.emitter.authState(`${decoded.email}/${decoded.codename}`, {
+								// 	status: 'success',
+								// 	data: response
+								// })
+								resolve(response)
 							}
 							return reject('error')
 						})
 				}
-				else if(decoded.type === 'login') {
+				else if(verificationData.decoded.type === 'login') {
 					try {
 						const response = await token.refresh({
-							issuer: decoded._id,
-							env: decoded.env
+							issuer: verificationData.decoded._id,
+							env: verificationData.decoded.env
 						})
-						io.emitter.authState(`${decoded.email}/${decoded.codename}`, {
-							status: 'success',
-							data: response
-						})
-						resolve('verified!')
+						console.log(response)
+						verificationList[params.email + params.codename].verified = true
+		
+						// io.emitter.authState(`${decoded.email}/${decoded.codename}`, {
+						// 	status: 'success',
+						// 	data: response
+						// })
+						resolve(response)
 					} catch (err) {
 						reject(err)
 					}
 				}
-			} catch (err) {
-				reject(err)
+			}
+			else{
+				reject('waiting')	
 			}
 		})
 	},
@@ -185,7 +217,7 @@ module.exports = {
 					token: params.refreshToken
 				})
 					.then((result) => {
-						if(!result) return reject('not found')
+						if(!result) return reject('unauthorized')
 						resolve(result.issuer)
 					})
 					.catch((err) => {
